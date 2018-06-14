@@ -21,6 +21,8 @@ All data should be downloaded to a `data/` directory in the root directory of th
 
 The easiest way to download the data is to run the provided script `tools/download.sh` from the repository root. If the script does not work, it should be easy to examine the script and modify the steps outlined in it according to your needs. Then run `tools/process.sh` from the repository root to process the data to the correct format.
 
+We use a part of Visual Genome dataset for data augmentation. The [image meta data](https://visualgenome.org/static/data/dataset/image_data.json.zip) and the [question answers](https://visualgenome.org/static/data/dataset/question_answers.json.zip) of Version 1.2 are needed to be placed in `data/`.
+
 ### Training
 
 Simply run `python main.py` to start training. The training and validation scores will be printed every epoch, and the best model will be saved under the directory "saved_models". The default hyperparameters should give you the best result of single model, which is around **70.04** for test-dev split. 
