@@ -11,7 +11,6 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.nn.utils.weight_norm import weight_norm
 import utils
-import tools.nn
 from attention import BiAttention
 from language_model import WordEmbedding, QuestionEmbedding
 from classifier import SimpleClassifier
