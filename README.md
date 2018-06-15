@@ -39,6 +39,10 @@ $ python3 test.py --label mytest
 
 The result json file will be found in the directory `results/`.
 
+### Troubleshooting
+
+Please check [troubleshooting wiki](https://github.com/jnhwkim/ban-vqa/wiki/Troubleshooting) and [previous issue history](https://github.com/jnhwkim/ban-vqa/issues?utf8=✓&q=is%3Aissue).
+
 ### Citation
 
 If you use this code as part of any published research, we'd really appreciate it if you could cite the following paper:
