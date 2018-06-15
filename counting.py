@@ -5,6 +5,7 @@ ICLR 2018
 
 This code is from Yan Zhang's repository.
 https://github.com/Cyanogenoid/vqa-counting/blob/master/vqa-v2/counting.py
+MIT License
 """
 import torch
 import torch.nn as nn
