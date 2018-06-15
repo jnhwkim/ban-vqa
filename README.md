@@ -27,6 +27,8 @@ We use a part of Visual Genome dataset for data augmentation. The [image meta da
 
 We use MS COCO captions to extract semantically connected words for the extended word embeddings along with the questions of VQA 2.0 and Visual Genome. You can download in [here](http://images.cocodataset.org/annotations/annotations_trainval2017.zip). Since the contribution of these captions is minor, you can skip the processing of MS COCO captions by removing `cap` elements in the `target` option in this [line](https://github.com/jnhwkim/ban-vqa/blob/master/dataset.py#L393).
 
+Counting module ([Zhang et al., 2018](https://openreview.net/forum?id=B12Js_yRb)) is integrated in this repository as `counting.py` for your convenience. The source repository can be found in @Cyanogenoid's [vqa-counting](https://github.com/Cyanogenoid/vqa-counting).
+
 ### Training
 
 Simply run `python main.py` to start training. The training and validation scores will be printed every epoch, and the best model will be saved under the directory "saved_models". The default hyperparameters should give you the best result of single model, which is around **70.04** for test-dev split. 
