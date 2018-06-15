@@ -32,7 +32,7 @@ Counting module ([Zhang et al., 2018](https://openreview.net/forum?id=B12Js_yRb)
 ### Training
 
 ```
-python main.py --use_both True --use_vg True
+$ python3 main.py --use_both True --use_vg True
 ```
 to start training (the options for the train/val splits and Visual Genome to train, respectively). The training and validation scores will be printed every epoch, and the best model will be saved under the directory "saved_models". The default hyperparameters should give you the best result of single model, which is around **70.04** for test-dev split. 
 
