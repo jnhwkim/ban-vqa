@@ -36,7 +36,7 @@ class BCNet(nn.Module):
             self.h_mat = nn.Parameter(torch.Tensor(1, h_out, 1, h_dim * self.k).normal_())
             self.h_bias = nn.Parameter(torch.Tensor(1, h_out, 1, 1).normal_())
         else:
-            self.h_net = weight_norm(nn.Linear(h_dim, h_out), dim=None)
+            self.h_net = weight_norm(nn.Linear(h_dim * self.k, h_out), dim=None)
 
     def forward(self, v, q):
         if None == self.h_out:
