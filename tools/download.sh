@@ -46,6 +46,6 @@ rm data/test2015.zip
 # and extract pkl files under data/cache/.
 mkdir -p data/cache
 wget --no-check-certificate 'https://drive.google.com/uc?export=download&id=1m5pL9gOkcnLZ_NuANmnDFIcil3NQVmZc' -O data/cache/cache.pkl.tgz
-tar xvf cache.pkl.tgz
-rm cache.pkl.tgz
+tar xvf data/cache/cache.pkl.tgz -C data/cache/
+rm data/cache/cache.pkl.tgz
 
