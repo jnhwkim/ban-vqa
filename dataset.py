@@ -235,6 +235,7 @@ class VQAFeatureDataset(Dataset):
             self.spatials = np.array(hf.get('spatial_features'))
             if self.adaptive:
                 self.pos_boxes = np.array(hf.get('pos_boxes'))
+        print('done.')
 
         self.entries = _load_dataset(dataroot, name, self.img_id2idx, self.label2ans)
         self.tokenize()
@@ -258,9 +259,10 @@ class VQAFeatureDataset(Dataset):
             utils.assert_eq(len(tokens), max_length)
             entry['q_token'] = tokens
 
-    def tensorize(self):
-        self.features = torch.from_numpy(self.features)
-        self.spatials = torch.from_numpy(self.spatials)
+    def tensorize(self, question_only=False):
+        if not question_only:
+            self.features = torch.from_numpy(self.features)
+            self.spatials = torch.from_numpy(self.spatials)
 
         for entry in self.entries:
             question = torch.from_numpy(np.array(entry['q_token']))

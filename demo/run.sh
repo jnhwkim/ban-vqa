@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=0 FLASK_APP=demo/server.py flask run -h 0.0.0.0

@@ -1,0 +1,13 @@
+<!doctype html>
+<title>Hello from Flask</title>
+{% if imageid %}
+    <h1>Hello {{ imageid }}!</h1>
+    <img src="{{ impath }}"/>
+    <ul>
+    {% for q in questions %}
+        <li><span class="question">{{ q.question }}</span> <label class="answer">{{ q.answer }}</label></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <h1>Hello, World!</h1>
+{% endif %}
