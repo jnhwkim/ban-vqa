@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, request
 import os
 import json
 import datetime
@@ -32,6 +32,7 @@ for q in questions:
 
 imageids = list(images.keys())
 shuffle(imageids)
+session = list()  # single session
 
 def log(message):
     currenttime = datetime.datetime.today().strftime('%d/%b/%Y %H:%M:%S')
@@ -66,6 +67,20 @@ def postprocess(pred, dataloader):
         answers = answers + [test.get_answer(pred[i], dataloader)]
     return answers
 
+def inference(questions, dataloader, batch_size=20):
+    dataloader.entries = _load_dataset(questions, dataloader.img_id2idx, dataloader.label2ans)
+    dataloader.tokenize()
+    dataloader.tensorize(question_only=True)
+    eval_loader = DataLoader(dataloader, batch_size, shuffle=False, num_workers=1, collate_fn=utils.trim_collate)
+
+    v, b, q, a = iter(eval_loader).next()
+    v = Variable(v).cuda()
+    b = Variable(b).cuda()
+    q = Variable(q, volatile=True).cuda()
+    pred, att = model(v, b, q, None)
+    answers = postprocess(pred.data, eval_loader)
+    return answers
+
 # load the vqa feature dataset
 dictionary = Dictionary.load_from_file('data/dictionary.pkl')
 log('loading VQAFeatureDataset ...')
@@ -98,19 +113,10 @@ def index(imageid=None):
         return(index(imageids[0]))
     impath = url_for('static', filename='data/%s/COCO_test2015_%012d.jpg' % (split, imageid))
     sample = images[imageid]
+    session.clear()
 
-    # prepare dataloader
-    eval_dset.entries = _load_dataset(sample, eval_dset.img_id2idx, eval_dset.label2ans)
-    eval_dset.tokenize()
-    eval_dset.tensorize(question_only=True)
-    eval_loader = DataLoader(eval_dset, 10, shuffle=False, num_workers=1, collate_fn=utils.trim_collate)
+    answers = inference(sample, eval_dset)
 
-    v, b, q, a = iter(eval_loader).next()
-    v = Variable(v).cuda()
-    b = Variable(b).cuda()
-    q = Variable(q, volatile=True).cuda()
-    pred, att = model(v, b, q, None)
-    answers = postprocess(pred.data, eval_loader)
     for q, a in zip(sample, answers):
         q['answer'] = a
 
@@ -118,3 +124,30 @@ def index(imageid=None):
         imageid=imageid, 
         impath=impath,
         questions=sample)
+
+@app.route('/query', methods=['POST'])
+def query():
+    if request.form['question'] is None:
+        return(index(imageid))
+    else:
+        # retrieve single session information
+        imageid = imageids[0]
+        impath = url_for('static', filename='data/%s/COCO_test2015_%012d.jpg' % (split, imageid))
+        sample = images[imageid]
+
+        question = request.form['question']
+        log('q=%s' % question)
+        q = sample[0].copy()
+        q['question'] = question
+        session.append(q)
+        sample = sample + session
+
+        answers = inference(sample, eval_dset)
+
+        for q, a in zip(sample, answers):
+            q['answer'] = a
+
+        return render_template('index.html', 
+            imageid=imageid, 
+            impath=impath,
+            questions=sample)

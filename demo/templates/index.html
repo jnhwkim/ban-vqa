@@ -1,19 +1,42 @@
 <!doctype html>
 <header>
-    <title>Hello from Flask</title>
+    <title>BAN-VQA Demo</title>
     <link rel="stylesheet" type="text/css" href="static/main.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('.chatbox ul').animate({
+                scrollTop: $('.chatbox ul').prop("scrollHeight")
+            }, 2000);
+        });
+    </script>
 </header>
 <body>
+<div class="demo">
 {% if imageid %}
-    <h1>Hello {{ imageid }}!</h1>
-    <center><img src="{{ impath }}"/></center>
+    <div class="header">
+        VQA 2.0 Test-{{ imageid }} <span class="title"><img src="static/logo.png"/></span>
+    </div>
+    <div class="imgbox">
+        <img src="{{ impath }}"/>
+    </div>
+    <div class="chatbox"> 
     <ul>
     {% for q in questions %}
         <li class="me">{{ q.question }}</li>
         <li class="him">{{ q.answer }}</li>
     {% endfor %}
     </ul>
+    </div>
+    <div class="actbox">
+        <form action="/query" method="post">
+            <div class="wrapper"><input type="text" name="question" autofocus/></div>
+            <a href="/"><input type="button" value="Random"/></a>
+            <input type="submit" value="Query"/>
+        </form>
+    </div>
 {% else %}
-    <h1>Hello, World!</h1>
+    <h1>Embarrassingly empty!</h1>
 {% endif %}
+</div>
 </body>

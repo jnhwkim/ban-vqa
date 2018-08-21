@@ -11,7 +11,7 @@ ul li{
   border-radius: 30px;
   margin-bottom: 2px;
   font-family: Helvetica, Arial, sans-serif;
-  font-size: 2em;
+  font-size: 32px;
 }
 
 .him{
@@ -21,13 +21,9 @@ ul li{
 
 .me{
   float: right;
-  background: #BD3B3B; /*#0084ff;*/
+  background: #CD2B34; /*#0084ff;*/
   color: #fff;
 }
-
-/*.him + .me{
-  border-bottom-right-radius: 5px;
-}*/
 
 .me + .me{
   border-top-right-radius: 5px;
@@ -36,4 +32,105 @@ ul li{
 
 .me:last-of-type {
   border-bottom-right-radius: 30px;
+}
+
+html, body{
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+h1{
+  margin: 0;
+  padding: 20px;
+}
+
+.demo{
+  display: block;
+  height: 100%;
+}
+
+.header{
+  display: block;
+  height: 40px;
+  /*background: #CD2B34;*/
+  padding: 20px;
+  font-size: 36px;
+  color: #CD2B34;
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.header img{
+  height: 40px;
+}
+
+.header .title{
+  float: right;
+}
+
+.imgbox{
+  display: block;
+  text-align: center;
+  margin-top: 30px;
+}
+
+.actbox{
+  height: 100px;
+  width: 100%;
+  background: #CD2B34;
+  position: absolute;
+  bottom: 0;
+}
+
+.actbox input[type="text"]{
+  display: inline-block;
+  padding: 20px;
+  border-radius: 30px;
+  margin: 0;
+  margin-top: 12px;
+  margin-left: 12px;
+  margin-right: 410px;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 32px;
+  border: 0;
+  width: 100%;
+}
+
+.actbox input[type="submit"], .actbox input[type="button"]{
+  display: block;
+  width: 160px;
+  padding: 20px;
+  margin-top: -76px;
+  margin-right: 12px;
+  border-radius: 30px;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 32px;
+  border: 0;
+  background: #eee;
+  float: right;
+  cursor: pointer;
+  z-index: 999;
+}
+
+.actbox input[type="submit"]:active, .actbox input[type="button"]:active{
+  color: #CD2B34;
+}
+
+.actbox .wrapper{
+  display: block;
+  padding-right: 410px;
+  z-index: -999;
+}
+
+img{
+  height: 400px;
+  padding-bottom: 30px;
+}
+
+ul{
+  position: fixed;
+  top: 540px;
+  bottom: 100px;
+  width: 100%;
+  overflow: auto;
 }
