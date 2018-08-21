@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, abort
 import os
 import json
 import datetime
@@ -67,7 +67,7 @@ def postprocess(pred, dataloader):
         answers = answers + [test.get_answer(pred[i], dataloader)]
     return answers
 
-def inference(questions, dataloader, batch_size=20):
+def inference(questions, dataloader, batch_size=32):
     dataloader.entries = _load_dataset(questions, dataloader.img_id2idx, dataloader.label2ans)
     dataloader.tokenize()
     dataloader.tensorize(question_only=True)
@@ -109,8 +109,9 @@ def index(imageid=None):
     try:
         imageid = int(imageid)
     except ValueError:
-        shuffle(imageids)
-        return(index(imageids[0]))
+        return abort(404)
+    imageids.remove(imageid)
+    imageids.insert(0, imageid)
     impath = url_for('static', filename='data/%s/COCO_test2015_%012d.jpg' % (split, imageid))
     sample = images[imageid]
     session.clear()
@@ -150,4 +151,5 @@ def query():
         return render_template('index.html', 
             imageid=imageid, 
             impath=impath,
-            questions=sample)
+            questions=sample,
+            is_query=True)

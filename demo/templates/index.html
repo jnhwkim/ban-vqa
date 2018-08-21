@@ -4,10 +4,20 @@
     <link rel="stylesheet" type="text/css" href="static/main.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>
+        {% if is_query %}
+        $(document).ready(function(){
+            $('.chatbox ul').animate({
+                scrollTop: $('.chatbox ul').prop("scrollHeight")-410+8-68-98
+            }, 0);
+        });
+        {% endif %}
         $(document).ready(function(){
             $('.chatbox ul').animate({
                 scrollTop: $('.chatbox ul').prop("scrollHeight")
             }, 2000);
+            $('.actbox input.refresh').click(function(){
+                window.location.href = '/';
+            });
         });
     </script>
 </header>
@@ -31,7 +41,7 @@
     <div class="actbox">
         <form action="/query" method="post">
             <div class="wrapper"><input type="text" name="question" autofocus/></div>
-            <a href="/"><input type="button" value="Random"/></a>
+            <input type="button" value="Random" class="refresh"/>
             <input type="submit" value="Query"/>
         </form>
     </div>

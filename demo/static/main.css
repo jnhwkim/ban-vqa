@@ -123,13 +123,13 @@ h1{
 }
 
 img{
-  height: 400px;
+  height: 300px;
   padding-bottom: 30px;
 }
 
 ul{
   position: fixed;
-  top: 540px;
+  top: 440px;
   bottom: 100px;
   width: 100%;
   overflow: auto;
