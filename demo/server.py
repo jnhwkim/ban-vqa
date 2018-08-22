@@ -1,6 +1,9 @@
 from flask import Flask, render_template, url_for, request, abort
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 import json
+from time import sleep
 import datetime
 from random import shuffle
 from dataset import Dictionary, VQAFeatureDataset
@@ -107,6 +110,11 @@ model.train(False)
 log('Server is prepared!')
 
 app = Flask(__name__)
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["1 per second"]
+)
 
 @app.route('/')
 @app.route('/<imageid>')
@@ -138,7 +146,7 @@ def index(imageid=None):
 @app.route('/query', methods=['POST'])
 def query():
     if request.form['question'] is None:
-        return(index(imageid))
+        return(index(imageids[0]))
     else:
         # retrieve single session information
         imageid = imageids[0]
@@ -163,3 +171,7 @@ def query():
             questions=sample,
             is_query=True,
             style=get_style(request))
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return render_template('busy.html')

@@ -20,7 +20,7 @@
             });
             setInterval(function() {
                window.location.href = '/';
-            }, {{ '300000' if is_query else '180000' }});  // auto-refresh: 3 min, init: 5 min
+            }, {{ '300000' if is_query else '120000' }});  // auto-refresh: 2 min, init: 5 min
         });
     </script>
 </header>
