@@ -61,6 +61,12 @@ h1{
   font-family: Helvetica, Arial, sans-serif;
 }
 
+.header .text{
+  font-size: 32px;
+  line-height: 60px;
+  vertical-align: top;
+}
+
 .header img{
   height: 40px;
 }
