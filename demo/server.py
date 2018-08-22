@@ -81,6 +81,14 @@ def inference(questions, dataloader, batch_size=32):
     answers = postprocess(pred.data, eval_loader)
     return answers
 
+def get_style(request):
+    agent = request.headers.get('User-Agent')
+    phones = ["iphone", "android", "blackberry"]
+    if any(phone in agent.lower() for phone in phones):
+        return 'main'
+    else:
+        return 'landscape'
+
 # load the vqa feature dataset
 dictionary = Dictionary.load_from_file('data/dictionary.pkl')
 log('loading VQAFeatureDataset ...')
@@ -124,7 +132,8 @@ def index(imageid=None):
     return render_template('index.html', 
         imageid=imageid, 
         impath=impath,
-        questions=sample)
+        questions=sample,
+        style=get_style(request))
 
 @app.route('/query', methods=['POST'])
 def query():
@@ -137,7 +146,7 @@ def query():
         sample = images[imageid]
 
         question = request.form['question']
-        log('q=%s' % question)
+        log('agent=%s, q=%s' % (request.headers.get('User-Agent'), question))
         q = sample[0].copy()
         q['question'] = question
         session.append(q)
@@ -152,4 +161,5 @@ def query():
             imageid=imageid, 
             impath=impath,
             questions=sample,
-            is_query=True)
+            is_query=True,
+            style=get_style(request))

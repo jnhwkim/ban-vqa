@@ -1,0 +1,144 @@
+ul{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul li{
+  display:inline-block;
+  clear: both;
+  padding: 20px;
+  border-radius: 30px;
+  margin-bottom: 2px;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 32px;
+}
+
+.him{
+  background: #eee;
+  float: left;
+}
+
+.me{
+  float: right;
+  background: #CD2B34; /*#0084ff;*/
+  color: #fff;
+}
+
+.me + .me{
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.me:last-of-type {
+  border-bottom-right-radius: 30px;
+}
+
+html, body{
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+h1{
+  margin: 0;
+  padding: 20px;
+}
+
+.demo{
+  display: block;
+  height: 100%;
+}
+
+.header{
+  display: block;
+  height: 40px;
+  /*background: #CD2B34;*/
+  padding: 20px;
+  font-size: 36px;
+  color: #CD2B34;
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.header img{
+  height: 40px;
+}
+
+.header .title{
+  float: right;
+}
+
+.imgbox{
+  display: inline-block;
+  text-align: center;
+  margin-top: 20px;
+  width: 40%;
+}
+
+.imgbox img{
+  max-width: 90%;
+  max-height: 800px;
+}
+
+.chatbox{
+  margin: 0;
+  padding: 0;
+}
+
+.actbox{
+  height: 100px;
+  width: 100%;
+  background: #CD2B34;
+  position: absolute;
+  bottom: 0;
+}
+
+.actbox input[type="text"]{
+  display: inline-block;
+  padding: 20px;
+  border-radius: 30px;
+  margin: 0;
+  margin-top: 12px;
+  margin-left: 12px;
+  margin-right: 410px;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 32px;
+  border: 0;
+  width: 100%;
+}
+
+.actbox input[type="submit"], .actbox input[type="button"]{
+  display: block;
+  width: 160px;
+  padding: 20px;
+  margin-top: -76px;
+  margin-right: 12px;
+  border-radius: 30px;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 32px;
+  border: 0;
+  background: #eee;
+  float: right;
+  cursor: pointer;
+  z-index: 999;
+}
+
+.actbox input[type="submit"]:active, .actbox input[type="button"]:active{
+  color: #CD2B34;
+}
+
+.actbox .wrapper{
+  display: block;
+  padding-right: 410px;
+  z-index: -999;
+}
+
+ul{
+  position: fixed;
+  top: 100px;
+  right: 0;
+  bottom: 100px;
+  width: 59%;
+  overflow: auto;
+}
