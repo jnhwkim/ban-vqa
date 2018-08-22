@@ -14,10 +14,13 @@
         $(document).ready(function(){
             $('.chatbox ul').animate({
                 scrollTop: $('.chatbox ul').prop("scrollHeight")
-            }, 2000);
+            }, 3000);
             $('.actbox input.refresh').click(function(){
                 window.location.href = '/';
             });
+            setInterval(function() {
+               window.location.href = '/';
+            }, {{ '300000' if is_query else '180000' }});  // auto-refresh: 3 min, init: 5 min
         });
     </script>
 </header>
