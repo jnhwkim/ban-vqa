@@ -7,7 +7,7 @@
         {% if is_query %}
         $(document).ready(function(){
             $('.chatbox ul').animate({
-                scrollTop: $('.chatbox ul').prop("scrollHeight")-410+8-68-98
+                scrollTop: $('.chatbox ul').prop("scrollHeight")-$('.chatbox ul').height()-154
             }, 0);
         });
         {% endif %}
