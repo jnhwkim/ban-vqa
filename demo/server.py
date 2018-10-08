@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, request, abort
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import os
+import os, time
 import json
 from time import sleep
 import datetime
@@ -71,6 +71,7 @@ def postprocess(pred, dataloader):
     return answers
 
 def inference(questions, dataloader, batch_size=32):
+    start_time = time.time()
     dataloader.entries = _load_dataset(questions, dataloader.img_id2idx, dataloader.label2ans)
     dataloader.tokenize()
     dataloader.tensorize(question_only=True)
@@ -82,7 +83,8 @@ def inference(questions, dataloader, batch_size=32):
     q = Variable(q, volatile=True).cuda()
     pred, att = model(v, b, q, None)
     answers = postprocess(pred.data, eval_loader)
-    return answers
+    elapsed_time = time.time() - start_time
+    return answers, elapsed_time
 
 def get_style(request):
     agent = request.headers.get('User-Agent')
@@ -132,7 +134,7 @@ def index(imageid=None):
     sample = images[imageid]
     session.clear()
 
-    answers = inference(sample, eval_dset)
+    answers, elapsed_time = inference(sample, eval_dset)
 
     for q, a in zip(sample, answers):
         q['answer'] = a
@@ -154,13 +156,13 @@ def query():
         sample = images[imageid]
 
         question = request.form['question']
-        log('agent=%s, q=%s' % (request.headers.get('User-Agent'), question))
         q = sample[0].copy()
         q['question'] = question
         session.append(q)
         sample = sample + session
 
-        answers = inference(sample, eval_dset)
+        answers, elapsed_time = inference(sample, eval_dset)
+        log('agent=%s, q=%s (%.3f)' % (request.headers.get('User-Agent'), question, elapsed_time))
 
         for q, a in zip(sample, answers):
             q['answer'] = a
