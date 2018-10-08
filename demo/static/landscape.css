@@ -136,7 +136,7 @@ h1{
 
 .actbox .wrapper{
   display: block;
-  padding-right: 410px;
+  margin-right: 410px;
   z-index: -999;
 }
 
