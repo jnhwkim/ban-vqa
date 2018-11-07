@@ -90,7 +90,7 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
         train_score = 100 * train_score / N
         if None != eval_loader:
             model.train(False)
-            eval_score, bound, entropy = evaluate(model, eval_loader, task)
+            eval_score, bound, entropy = evaluate(model, eval_loader)
             model.train(True)
 
         logger.write('epoch %d, time: %.2f' % (epoch, time.time()-t))
