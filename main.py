@@ -9,9 +9,8 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, ConcatDataset
 import numpy as np
 
-from dataset import Dictionary, VQAFeatureDataset, VisualGenomeFeatureDataset
+from dataset import Dictionary, VQAFeatureDataset, VisualGenomeFeatureDataset, Flickr30kFeatureDataset
 import base_model
-from train import train
 import utils
 from utils import trim_collate
 from dataset import tfidf_from_questions
@@ -19,6 +18,7 @@ from dataset import tfidf_from_questions
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--task', type=str, default='vqa', help='vqa or flickr')
     parser.add_argument('--epochs', type=int, default=13)
     parser.add_argument('--num_hid', type=int, default=1280)
     parser.add_argument('--model', type=str, default='ban')
@@ -38,30 +38,47 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    utils.create_dir(args.output)
-    logger = utils.Logger(os.path.join(args.output, 'log.txt'))
-    logger.write(args.__repr__())
-
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
     torch.backends.cudnn.benchmark = True
 
-    dictionary = Dictionary.load_from_file('data/dictionary.pkl')
-    train_dset = VQAFeatureDataset('train', dictionary, adaptive=True)
-    val_dset = VQAFeatureDataset('val', dictionary, adaptive=True)
+    if args.task == 'vqa':
+        from train import train
+        dict_path = 'data/dictionary.pkl'
+        dictionary = Dictionary.load_from_file(dict_path)
+        train_dset = VQAFeatureDataset('train', dictionary, adaptive=True)
+        val_dset = VQAFeatureDataset('val', dictionary, adaptive=True)
+        w_emb_path = 'data/glove6b_init_300d.npy'
+
+    elif args.task == 'flickr':
+        from train_flickr import train
+        dict_path = 'data/flickr30k/dictionary.pkl'
+        dictionary = Dictionary.load_from_file(dict_path)
+        train_dset = Flickr30kFeatureDataset('train', dictionary)
+        val_dset = Flickr30kFeatureDataset('val', dictionary)
+        w_emb_path = 'data/flickr30k/glove6b_init_300d.npy'
+        args.op = ''
+        args.gamma = 1
+        args.tfidf = False
+
+    utils.create_dir(args.output)
+    logger = utils.Logger(os.path.join(args.output, 'args.txt'))
+    logger.write(args.__repr__())
 
     batch_size = args.batch_size
 
     constructor = 'build_%s' % args.model
-    model = getattr(base_model, constructor)(train_dset, args.num_hid, args.op, args.gamma).cuda()
+    model = getattr(base_model, constructor)(train_dset, args.num_hid, args.op, args.gamma, args.task).cuda()
+
 
     tfidf = None
     weights = None
 
     if args.tfidf:
-        dict = Dictionary.load_from_file('data/dictionary.pkl')
+        dict = Dictionary.load_from_file(dict_path)
         tfidf, weights = tfidf_from_questions(['train', 'val', 'test2015'], dict)
-    model.w_emb.init_embedding('data/glove6b_init_300d.npy', tfidf, weights)
+
+    model.w_emb.init_embedding(w_emb_path, tfidf, weights)
 
     model = nn.DataParallel(model).cuda()
 
@@ -77,19 +94,24 @@ if __name__ == '__main__':
         optim.load_state_dict(model_data.get('optimizer_state', model_data))
         epoch = model_data['epoch'] + 1
 
-    if args.use_both: # use train & val splits to optimize
-        if args.use_vg: # use a portion of Visual Genome dataset
-            vg_dsets = [
-                VisualGenomeFeatureDataset('train', \
-                    train_dset.features, train_dset.spatials, dictionary, adaptive=True, pos_boxes=train_dset.pos_boxes),
-                VisualGenomeFeatureDataset('val', \
-                    val_dset.features, val_dset.spatials, dictionary, adaptive=True, pos_boxes=val_dset.pos_boxes)]
-            trainval_dset = ConcatDataset([train_dset, val_dset]+vg_dsets)
+    if args.task == 'vqa':
+        if args.use_both: # use train & val splits to optimize
+            if args.use_vg: # use a portion of Visual Genome dataset
+                vg_dsets = [
+                    VisualGenomeFeatureDataset('train', \
+                        train_dset.features, train_dset.spatials, dictionary, adaptive=True, pos_boxes=train_dset.pos_boxes),
+                    VisualGenomeFeatureDataset('val', \
+                        val_dset.features, val_dset.spatials, dictionary, adaptive=True, pos_boxes=val_dset.pos_boxes)]
+                trainval_dset = ConcatDataset([train_dset, val_dset]+vg_dsets)
+            else:
+                trainval_dset = ConcatDataset([train_dset, val_dset])
+            train_loader = DataLoader(trainval_dset, batch_size, shuffle=True, num_workers=1, collate_fn=utils.trim_collate)
+            eval_loader = None
         else:
-            trainval_dset = ConcatDataset([train_dset, val_dset])
-        train_loader = DataLoader(trainval_dset, batch_size, shuffle=True, num_workers=1, collate_fn=utils.trim_collate)
-        eval_loader = None
-    else:
+            train_loader = DataLoader(train_dset, batch_size, shuffle=True, num_workers=1, collate_fn=utils.trim_collate)
+            eval_loader = DataLoader(val_dset, batch_size, shuffle=False, num_workers=1, collate_fn=utils.trim_collate)
+
+    elif args.task == 'flickr':
         train_loader = DataLoader(train_dset, batch_size, shuffle=True, num_workers=1, collate_fn=utils.trim_collate)
         eval_loader = DataLoader(val_dset, batch_size, shuffle=False, num_workers=1, collate_fn=utils.trim_collate)
 

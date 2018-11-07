@@ -28,14 +28,17 @@ class BiAttention(nn.Module):
         p, logits = self.forward_all(v, q, v_mask)
         return p, logits
 
-    def forward_all(self, v, q, v_mask=True):
+    def forward_all(self, v, q, v_mask=True, logit=False, mask_with=-float('inf')):
         v_num = v.size(1)
         q_num = q.size(1)
         logits = self.logits(v,q) # b x g x v x q
 
         if v_mask:
             mask = (0 == v.abs().sum(2)).unsqueeze(1).unsqueeze(3).expand(logits.size())
-            logits.data.masked_fill_(mask.data, -float('inf'))
+            logits.data.masked_fill_(mask.data, mask_with)
 
-        p = nn.functional.softmax(logits.view(-1, self.glimpse, v_num * q_num), 2)
-        return p.view(-1, self.glimpse, v_num, q_num), logits
+        if not logit:
+            p = nn.functional.softmax(logits.view(-1, self.glimpse, v_num * q_num), 2)
+            return p.view(-1, self.glimpse, v_num, q_num), logits
+
+        return logits

@@ -2,30 +2,23 @@
 This code is modified from Hengyuan Hu's repository.
 https://github.com/hengyuan-hu/bottom-up-attention-vqa
 """
+
 import os
 import time
-import itertools
 import torch
 import torch.nn as nn
 import utils
 from torch.autograd import Variable
-import torch.optim.lr_scheduler as lr_scheduler
+from train import instance_bce_with_logits, compute_score_with_logits
 
 
-def instance_bce_with_logits(logits, labels, size_average=True):
-    assert logits.dim() == 2
-
-    loss = nn.functional.binary_cross_entropy_with_logits(logits, labels, size_average=size_average)
-    if size_average:
-        loss *= labels.size(1)
-    return loss
-
-
-def compute_score_with_logits(logits, labels):
-    logits = torch.max(logits, 1)[1].data # argmax
-    one_hots = torch.zeros(*labels.size()).cuda()
-    one_hots.scatter_(1, logits.view(-1, 1), 1)
-    scores = (one_hots * labels)
+def compute_recall_with_logits(logits, labels):
+    logits = torch.sort(logits, 1, descending=True)[1].data
+    scores = [0]*3
+    for i,r in enumerate([1,5,10]):
+        one_hots = torch.zeros(*labels.size()).cuda()
+        one_hots.scatter_(1, logits[:,:r], 1)
+        scores[i] = ((one_hots * labels).sum(1)>=1).float().sum()
     return scores
 
 
@@ -54,7 +47,8 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
         total_norm = 0
         count_norm = 0
         t = time.time()
-        N = len(train_loader.dataset)
+        N = 0
+
         if epoch < len(gradual_warmup_steps):
             optim.param_groups[0]['lr'] = gradual_warmup_steps[epoch]
             logger.write('gradual warmup lr: %.4f' % optim.param_groups[0]['lr'])
@@ -64,21 +58,31 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
         else:
             logger.write('lr: %.4f' % optim.param_groups[0]['lr'])
 
-        for i, (v, b, q, a) in enumerate(train_loader):
+        for i, batch in enumerate(train_loader):
+            v, b, p, e, n, a, idx, types = batch
             v = Variable(v).cuda()
             b = Variable(b).cuda()
-            q = Variable(q).cuda()
+            p = Variable(p).cuda()
+            e = Variable(e).cuda()
             a = Variable(a).cuda()
 
-            pred, att = model(v, b, q, a)
-            loss = instance_bce_with_logits(pred, a)
+            _, logits = model(v, b, p, e, a)
+            n_obj = logits.size(2)
+            logits.squeeze_()
+
+            merged_logit = torch.cat(tuple(logits[j, :, :n[j][0]] for j in range(n.size(0))), -1).permute(1, 0)
+            merged_a = torch.cat(tuple(a[j, :n[j][0], :n_obj] for j in range(n.size(0))), 0)
+
+            loss = instance_bce_with_logits(merged_logit, merged_a, False) / v.size(0)
+            N += n.sum()
+
+            batch_score = compute_score_with_logits(merged_logit, merged_a.data).sum()
+
             loss.backward()
             total_norm += nn.utils.clip_grad_norm(model.parameters(), grad_clip)
             count_norm += 1
             optim.step()
             optim.zero_grad()
-
-            batch_score = compute_score_with_logits(pred, a.data).sum()
             total_loss += loss.data[0] * v.size(0)
             train_score += batch_score
 
@@ -86,13 +90,15 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
         train_score = 100 * train_score / N
         if None != eval_loader:
             model.train(False)
-            eval_score, bound, entropy = evaluate(model, eval_loader)
+            eval_score, bound, entropy = evaluate(model, eval_loader, task)
             model.train(True)
 
         logger.write('epoch %d, time: %.2f' % (epoch, time.time()-t))
         logger.write('\ttrain_loss: %.2f, norm: %.4f, score: %.2f' % (total_loss, total_norm/count_norm, train_score))
         if eval_loader is not None:
-            logger.write('\teval score: %.2f (%.2f)' % (100 * eval_score, 100 * bound))
+            logger.write('\teval score: %.2f/%.2f/%.2f (%.2f)' % (
+            100 * eval_score[0], 100 * eval_score[1], 100 * eval_score[2], 100 * bound))
+            eval_score = eval_score[0]
 
         if eval_loader is not None and entropy is not None:
             info = ''
@@ -108,34 +114,32 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
 
 
 def evaluate(model, dataloader):
-    score = 0
     upper_bound = 0
-    num_data = 0
     entropy = None
-    if hasattr(model.module, 'glimpse'):
-        entropy = torch.Tensor(model.module.glimpse).zero_().cuda()
-    for v, b, q, a in iter(dataloader):
-        v = Variable(v).cuda()
-        b = Variable(b).cuda()
-        q = Variable(q, volatile=True).cuda()
-        pred, att = model(v, b, q, None)
-        batch_score = compute_score_with_logits(pred, a.cuda()).sum()
-        score += batch_score
-        upper_bound += (a.max(1)[0]).sum()
-        num_data += pred.size(0)
-        if att is not None and 0 < model.module.glimpse:
-            entropy += calc_entropy(att.data)[:model.module.glimpse]
+    score = [0] * 3
+    N = 0
+    for batch in iter(dataloader):
+        v, b, p, e, n, a, idx, types = batch
+        v = Variable(v, volatile=True).cuda()
+        b = Variable(b, volatile=True).cuda()
+        p = Variable(p, volatile=True).cuda()
+        e = Variable(e, volatile=True).cuda()
+        a = Variable(a, volatile=True).cuda()
+        _, logits = model(v, b, p, e, None)
+        n_obj = logits.size(2)
+        logits.squeeze_()
 
-    score = score / len(dataloader.dataset)
-    upper_bound = upper_bound / len(dataloader.dataset)
+        merged_logits = torch.cat(tuple(logits[j, :, :n[j][0]] for j in range(n.size(0))), -1).permute(1, 0)
+        merged_a = torch.cat(tuple(a[j, :n[j][0], :n_obj] for j in range(n.size(0))), 0)
 
-    if entropy is not None:
-        entropy = entropy / len(dataloader.dataset)
+        recall = compute_recall_with_logits(merged_logits, merged_a.data)
+        for r_idx, r in enumerate(recall):
+            score[r_idx] += r
+        N += n.sum()
+        upper_bound += merged_a.max(-1, False)[0].sum()
+
+    for i in range(3):
+        score[i] = score[i] / N
+    upper_bound = upper_bound / N
 
     return score, upper_bound, entropy
-
-def calc_entropy(att): # size(att) = [b x g x v x q]
-    sizes = att.size()
-    eps = 1e-8
-    p = att.view(-1, sizes[1], sizes[2] * sizes[3])
-    return (-p * (p+eps).log()).sum(2).sum(0) # g

@@ -16,6 +16,7 @@ Hierarchy of HDF5 file:
 from __future__ import print_function
 
 import os
+import argparse
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -28,30 +29,59 @@ import utils
 
 csv.field_size_limit(sys.maxsize)
 
-def extract(split, infiles):
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--task', type=str, default='vqa', help='vqa or flickr')
+    args = parser.parse_args()
+    return args
+
+def extract(split, infiles, task='vqa'):
     FIELDNAMES = ['image_id', 'image_w', 'image_h', 'num_boxes', 'boxes', 'features']
-    data_file = {
-        'train': 'data/train.hdf5', 
-        'val': 'data/val.hdf5',
-        'test': 'data/test2015.hdf5'}
-    indices_file = {
-        'train': 'data/train_imgid2idx.pkl',
-        'val': 'data/val_imgid2idx.pkl',
-        'test': 'data/test2015_imgid2idx.pkl'}
-    ids_file = {
-        'train': 'data/train_ids.pkl',
-        'val': 'data/val_ids.pkl',
-        'test': 'data/test2015_ids.pkl'}
-    path_imgs = {
-        'train': 'data/train2014',
-        'val': 'data/val2014',
-        'test': 'data/test2015'
-    }
-    known_num_boxes = {
-        'train': 2643089,
-        'val': 1281164,
-        'test': 2566887,
-    }
+    if task == 'vqa':
+        data_file = {
+            'train': 'data/train.hdf5',
+            'val': 'data/val.hdf5',
+            'test': 'data/test2015.hdf5'}
+        indices_file = {
+            'train': 'data/train_imgid2idx.pkl',
+            'val': 'data/val_imgid2idx.pkl',
+            'test': 'data/test2015_imgid2idx.pkl'}
+        ids_file = {
+            'train': 'data/train_ids.pkl',
+            'val': 'data/val_ids.pkl',
+            'test': 'data/test2015_ids.pkl'}
+        path_imgs = {
+            'train': 'data/train2014',
+            'val': 'data/val2014',
+            'test': 'data/test2015'}
+        known_num_boxes = {
+            'train': 2643089,
+            'val': 1281164,
+            'test': 2566887,}
+
+    elif task == 'flickr':
+        data_file = {
+            'train': 'data/flickr30k/train.hdf5',
+            'val': 'data/flickr30k/val.hdf5',
+            'test': 'data/flickr30k/test.hdf5'}
+        indices_file = {
+            'train': 'data/flickr30k/train_imgid2idx.pkl',
+            'val': 'data/flickr30k/val_imgid2idx.pkl',
+            'test': 'data/flickr30k/test_imgid2idx.pkl'}
+        ids_file = {
+            'train': 'data/flickr30k/train_ids.pkl',
+            'val': 'data/flickr30k/val_ids.pkl',
+            'test': 'data/flickr30k/test_ids.pkl'}
+        path_imgs = {
+            'train': 'data/flickr30k/flickr30k_images',
+            'val': 'data/flickr30k/flickr30k_images',
+            'test': 'data/flickr30k/flickr30k_images'}
+        known_num_boxes = {
+            'train': 904930,
+            'val': 29906,
+            'test': 30034,}
+
     feature_length = 2048
     min_fixed_boxes = 10
     max_fixed_boxes = 100
@@ -157,14 +187,22 @@ def extract(split, infiles):
     print("done!")
 
 if __name__ == '__main__':
-    infile = ['data/trainval/karpathy_test_resnet101_faster_rcnn_genome.tsv',
-        'data/trainval/karpathy_train_resnet101_faster_rcnn_genome.tsv.0',
-        'data/trainval/karpathy_train_resnet101_faster_rcnn_genome.tsv.1',
-        'data/trainval/karpathy_val_resnet101_faster_rcnn_genome.tsv']
-    extract('train', infile)
-    extract('val', infile)
-    infile = ['data/test2015/test2015_resnet101_faster_rcnn_genome.tsv']
-    extract('test', infile)
+    args = parse_args()
 
-
-    
+    if args.task == 'vqa':
+        infiles = ['data/trainval/karpathy_test_resnet101_faster_rcnn_genome.tsv',
+            'data/trainval/karpathy_train_resnet101_faster_rcnn_genome.tsv.0',
+            'data/trainval/karpathy_train_resnet101_faster_rcnn_genome.tsv.1',
+            'data/trainval/karpathy_val_resnet101_faster_rcnn_genome.tsv']
+        extract('train', infiles, args.task)
+        extract('val', infiles, args.task)
+        infiles = ['data/test2015/test2015_resnet101_faster_rcnn_genome.tsv']
+        extract('test', infiles, args.task)
+    elif args.task == 'flickr':
+        infiles = ['data/flickr30k/train_flickr30k_resnet101_faster_rcnn_genome.tsv.1',
+                  'data/flickr30k/train_flickr30k_resnet101_faster_rcnn_genome.tsv.2']
+        extract('train', infiles, args.task)
+        infiles = ['data/flickr30k/val_flickr30k_resnet101_faster_rcnn_genome.tsv.3']
+        extract('val', infiles, args.task)
+        infiles = ['data/flickr30k/test_flickr30k_resnet101_faster_rcnn_genome.tsv.3']
+        extract('test', infiles, args.task)

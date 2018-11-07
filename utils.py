@@ -30,6 +30,10 @@ def assert_array_eq(real, expected):
     assert (np.abs(real-expected) < EPS).all(), \
         '%s (true) vs %s (expected)' % (real, expected)
 
+def assert_tensor_eq(real, expected, eps=EPS):
+    assert (torch.abs(real-expected) < eps).all(), \
+        '%s (true) vs %s (expected)' % (real, expected)
+
 
 def load_folder(folder, suffix):
     imgs = []
@@ -212,3 +216,69 @@ def create_glove_embedding_init(idx2word, glove_file):
             continue
         weights[idx] = word2emb[word]
     return weights, word2emb
+
+# Remove Flickr30K Entity annotations in a string
+def remove_annotations(s):
+    return re.sub(r'\[[^ ]+ ','',s).replace(']', '')
+
+def get_sent_data(file_path):
+    phrases = []
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for sent in f:
+            str = remove_annotations(sent.strip())
+            phrases.append(str)
+
+    return phrases
+
+
+# Find position of a given sublist
+# return the index of the last token
+def find_sublist(arr, sub):
+    sublen = len(sub)
+    first = sub[0]
+    indx = -1
+    while True:
+        try:
+            indx = arr.index(first, indx + 1)
+        except ValueError:
+            break
+        if sub == arr[indx: indx + sublen]:
+            return indx + sublen - 1
+    return -1
+
+
+def calculate_iou(obj1, obj2):
+    area1 = calculate_area(obj1)
+    area2 = calculate_area(obj2)
+    intersection = get_intersection(obj1, obj2)
+    area_int = calculate_area(intersection)
+    return area_int / (area1 + area2 - area_int)
+
+def calculate_area(obj):
+    return (obj[2] - obj[0]) * (obj[3] - obj[1])
+
+def get_intersection(obj1, obj2):
+    left = obj1[0] if obj1[0] > obj2[0] else obj2[0]
+    top = obj1[1] if obj1[1] > obj2[1] else obj2[1]
+    right = obj1[2] if obj1[2] < obj2[2] else obj2[2]
+    bottom = obj1[3] if obj1[3] < obj2[3] else obj2[3]
+    if left > right or top > bottom:
+        return [0, 0, 0, 0]
+    return [left, top, right, bottom]
+
+
+def get_match_index(src_bboxes, dst_bboxes):
+    indices = set()
+    for src_bbox in src_bboxes:
+        for i, dst_bbox in enumerate(dst_bboxes):
+            iou = calculate_iou(src_bbox, dst_bbox)
+            if iou >= 0.5:
+                indices.add(i)
+    return list(indices)
+
+# Batched index_select
+def batched_index_select(t, dim, inds):
+    dummy = inds.unsqueeze(2).expand(inds.size(0), inds.size(1), t.size(2))
+    out = t.gather(dim, dummy) # b x e x f
+    return out

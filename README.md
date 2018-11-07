@@ -13,6 +13,7 @@ You may need a machine with 4 GPUs, 64GB memory, and PyTorch v0.3.1 for Python 3
 1. Install [PyTorch](http://pytorch.org/) with CUDA and Python 3.5.
 2. Install [h5py](http://docs.h5py.org/en/latest/build.html).
 
+## VQA
 ### Preprocessing
 
 Our implementation uses the pretrained features from [bottom-up-attention](https://github.com/peteanderson80/bottom-up-attention), the adaptive 10-100 features per image. In addition to this, the GloVe vectors. For the simplicity, the below script helps you to avoid a hassle.
@@ -55,6 +56,29 @@ $ python3 test.py --label mytest
 ```
 
 The result json file will be found in the directory `results/`.
+
+## Flickr30k Entities
+### Preprocessing
+You have to download [Annotation and Sentence](http://web.engr.illinois.edu/~bplumme2/Flickr30kEntities/) file to `data/flickr30k/Flickr30kEntities.tar.gz` manually. Then run the provided script `tools/download_flickr.sh`, `tools/process_flickr.sh` from the repository root similarly to VQA. Note that image features of Flickr30k were generated using [bottom-up-attention pretrained model](https://github.com/peteanderson80/bottom-up-attention.git).
+
+### Training
+
+```
+$ python3 main.py --task flickr --out saved_models/flickr
+```
+to start training. `--gamma` option does not applied. The default hyperparameters should give you Recall@1 about **69.6** for test split.
+
+
+### Validation
+Please download the [link](https://drive.google.com/uc?export=download&id=1xiVVRPsbabipyHes25iE0uj2YkdKWv3K) and move to `saved_models/flickr/model_epoch5.pth` (you may encounter a redirection page to confirm).
+
+```
+$ python3 evaluate.py --task flickr --input saved_models/flickr --epoch 5
+```
+to evaluate the scores for test split. 
+
+
+
 
 ### Troubleshooting
 
