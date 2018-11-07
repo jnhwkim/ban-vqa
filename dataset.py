@@ -639,15 +639,6 @@ def tfidf_from_questions(names, dictionary, dataroot='data', target=['vqa', 'vg'
             for caps in captions['annotations']:
                 populate(inds, df, caps['caption'])
 
-    if 'flickr' in target:
-        sentence_dir = os.path.join(dataroot,
-            'flickr30k/Flickr30kEntities/Sentences')
-        sentence_paths = utils.load_folder(sentence_dir, 'txt')
-        for sentence_path in sentence_paths:
-            sentences = utils.get_sent_data(sentence_path)
-            for sentence in sentences:
-                populate(inds, df, sentence)
-
     # TF-IDF
     vals = [1] * len(inds[1])
     for idx, col in enumerate(inds[1]):
