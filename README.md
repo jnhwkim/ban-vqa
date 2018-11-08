@@ -59,14 +59,14 @@ The result json file will be found in the directory `results/`.
 
 ## Flickr30k Entities
 ### Preprocessing
-You have to download [Annotation and Sentence](http://web.engr.illinois.edu/~bplumme2/Flickr30kEntities/) file to `data/flickr30k/Flickr30kEntities.tar.gz` manually. Then run the provided script `tools/download_flickr.sh`, `tools/process_flickr.sh` from the repository root similarly to VQA. Note that image features of Flickr30k were generated using [bottom-up-attention pretrained model](https://github.com/peteanderson80/bottom-up-attention.git).
+You have to manually download [Annotation and Sentence](http://web.engr.illinois.edu/~bplumme2/Flickr30kEntities/) files to `data/flickr30k/Flickr30kEntities.tar.gz`. Then run the provided script `tools/download_flickr.sh` and `tools/process_flickr.sh` from the root of this repository, similarly to the case of VQA. Note that the image features of Flickr30k were generated using [bottom-up-attention pretrained model](https://github.com/peteanderson80/bottom-up-attention.git).
 
 ### Training
 
 ```
 $ python3 main.py --task flickr --out saved_models/flickr
 ```
-to start training. `--gamma` option does not applied. The default hyperparameters should give you Recall@1 about **69.6** for test split.
+to start training. `--gamma` option does not applied. The default hyperparameters should give you approximately **69.6** for Recall@1 for the test split.
 
 
 ### Validation
@@ -75,7 +75,7 @@ Please download the [link](https://drive.google.com/uc?export=download&id=1xiVVR
 ```
 $ python3 evaluate.py --task flickr --input saved_models/flickr --epoch 5
 ```
-to evaluate the scores for test split. 
+to evaluate the scores for the test split.
 
 
 
