@@ -1,6 +1,10 @@
-# Bilinear attention networks for visual question answering
+# Bilinear Attention Networks
 
-This repository is the implementation of [Bilinear Attention Networks](http://arxiv.org/abs/1805.07932) for the visual question answering task. Our single model achieved **70.35** and an ensemble of 15 models achieved **71.84** (Test-standard, VQA 2.0). For the detail, please refer to our [technical report](http://arxiv.org/abs/1805.07932).
+This repository is the implementation of [Bilinear Attention Networks](http://arxiv.org/abs/1805.07932) for the visual question answering and Flickr30k Entities tasks. 
+
+For the visual question answering task, our single model achieved **70.35** and an ensemble of 15 models achieved **71.84** (Test-standard, VQA 2.0). 
+For the Flickr30k Entities task, our single model achieved **69.88 / 84.39 / 86.40** for Recall@1, 5, and 10, respectively (slightly better than the original paper).
+For the detail, please refer to our [technical report](http://arxiv.org/abs/1805.07932).
 
 This repository is based on and inspired by @hengyuan-hu's [work](https://github.com/hengyuan-hu/bottom-up-attention-vqa). We sincerely thank for their sharing of the codes.
 
