@@ -33,7 +33,8 @@ class WordEmbedding(nn.Module):
             if 0 < tfidf_weights.size:
                 weight_init = torch.cat([weight_init, torch.from_numpy(tfidf_weights)], 0)
             weight_init = tfidf.matmul(weight_init) # (N x N') x (N', F)
-            self.emb_.weight.requires_grad = True
+            if 'c' in self.op:
+                self.emb_.weight.requires_grad = True
         if 'c' in self.op:
             self.emb_.weight.data[:self.ntoken] = weight_init.clone()
 

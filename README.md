@@ -1,6 +1,10 @@
-# Bilinear attention networks for visual question answering
+# Bilinear Attention Networks
 
-This repository is the implementation of [Bilinear Attention Networks](http://arxiv.org/abs/1805.07932) for the visual question answering task. Our single model achieved **70.35** and an ensemble of 15 models achieved **71.84** (Test-standard, VQA 2.0). For the detail, please refer to our [technical report](http://arxiv.org/abs/1805.07932).
+This repository is the implementation of [Bilinear Attention Networks](http://arxiv.org/abs/1805.07932) for the visual question answering and Flickr30k Entities tasks. 
+
+For the visual question answering task, our single model achieved **70.35** and an ensemble of 15 models achieved **71.84** (Test-standard, VQA 2.0). 
+For the Flickr30k Entities task, our single model achieved **69.88 / 84.39 / 86.40** for Recall@1, 5, and 10, respectively (slightly better than the original paper).
+For the detail, please refer to our [technical report](http://arxiv.org/abs/1805.07932).
 
 This repository is based on and inspired by @hengyuan-hu's [work](https://github.com/hengyuan-hu/bottom-up-attention-vqa). We sincerely thank for their sharing of the codes.
 
@@ -13,6 +17,7 @@ You may need a machine with 4 GPUs, 64GB memory, and PyTorch v0.3.1 for Python 3
 1. Install [PyTorch](http://pytorch.org/) with CUDA and Python 3.5.
 2. Install [h5py](http://docs.h5py.org/en/latest/build.html).
 
+## VQA
 ### Preprocessing
 
 Our implementation uses the pretrained features from [bottom-up-attention](https://github.com/peteanderson80/bottom-up-attention), the adaptive 10-100 features per image. In addition to this, the GloVe vectors. For the simplicity, the below script helps you to avoid a hassle.
@@ -55,6 +60,29 @@ $ python3 test.py --label mytest
 ```
 
 The result json file will be found in the directory `results/`.
+
+## Flickr30k Entities
+### Preprocessing
+You have to manually download [Annotation and Sentence](http://web.engr.illinois.edu/~bplumme2/Flickr30kEntities/) files to `data/flickr30k/Flickr30kEntities.tar.gz`. Then run the provided script `tools/download_flickr.sh` and `tools/process_flickr.sh` from the root of this repository, similarly to the case of VQA. Note that the image features of Flickr30k were generated using [bottom-up-attention pretrained model](https://github.com/peteanderson80/bottom-up-attention.git).
+
+### Training
+
+```
+$ python3 main.py --task flickr --out saved_models/flickr
+```
+to start training. `--gamma` option does not applied. The default hyperparameters should give you approximately **69.6** for Recall@1 for the test split.
+
+
+### Validation
+Please download the [link](https://drive.google.com/uc?export=download&id=1xiVVRPsbabipyHes25iE0uj2YkdKWv3K) and move to `saved_models/flickr/model_epoch5.pth` (you may encounter a redirection page to confirm).
+
+```
+$ python3 evaluate.py --task flickr --input saved_models/flickr --epoch 5
+```
+to evaluate the scores for the test split.
+
+
+
 
 ### Troubleshooting
 
