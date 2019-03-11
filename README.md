@@ -2,7 +2,7 @@
 
 This repository is the implementation of [Bilinear Attention Networks](http://arxiv.org/abs/1805.07932) for the visual question answering and Flickr30k Entities tasks. 
 
-For the visual question answering task, our single model achieved **70.35** and an ensemble of 15 models achieved **71.84** (Test-standard, VQA 2.0). 
+For the visual question answering task, our single model achieved **70.35** and an ensemble of 15 models achieved **71.84** (Test-standard, VQA 2.0).
 For the Flickr30k Entities task, our single model achieved **69.88 / 84.39 / 86.40** for Recall@1, 5, and 10, respectively (slightly better than the original paper).
 For the detail, please refer to our [technical report](http://arxiv.org/abs/1805.07932).
 
@@ -60,6 +60,10 @@ $ python3 test.py --label mytest
 ```
 
 The result json file will be found in the directory `results/`.
+
+### Without Visual Genome augmentation
+
+Without the Visual Genome augmentation, we get **69.50** (average of 8 models with the standard deviation of **0.096**) for the test-dev split. We use the 8-glimpse model, the learning rate is starting with **0.001** (please see this change for the better results), 13 epochs, and the batch size of 256.
 
 ## Flickr30k Entities
 ### Preprocessing
