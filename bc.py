@@ -32,29 +32,26 @@ class BCNet(nn.Module):
         
         if None == h_out:
             pass
-        elif h_out <= self.c:  
-            self.h_mat = nn.Parameter(torch.Tensor(1, h_out, 1, h_dim * self.k).normal_())
+        elif h_out <= self.c:
+            self.h_mat = nn.Parameter(torch.Tensor(h_out, h_dim * self.k).normal_())
             self.h_bias = nn.Parameter(torch.Tensor(1, h_out, 1, 1).normal_())
         else:
             self.h_net = weight_norm(nn.Linear(h_dim * self.k, h_out), dim=None)
 
     def forward(self, v, q):
         if None == self.h_out:
-            v_ = self.v_net(v).transpose(1,2).unsqueeze(3)
-            q_ = self.q_net(q).transpose(1,2).unsqueeze(2)
-            d_ = torch.matmul(v_, q_) # b x h_dim x v x q
-            logits = d_.transpose(1,2).transpose(2,3) # b x v x q x h_dim
+            v_ = self.v_net(v)
+            q_ = self.q_net(q)
+            logits = torch.einsum('bvk,bqk->bvqk', (v_, q_))
             return logits
 
         # broadcast Hadamard product, matrix-matrix production
         # fast computation but memory inefficient
         # epoch 1, time: 157.84
         elif self.h_out <= self.c:
-            v_ = self.dropout(self.v_net(v)).unsqueeze(1)
+            v_ = self.dropout(self.v_net(v))
             q_ = self.q_net(q)
-            h_ = v_ * self.h_mat # broadcast, b x h_out x v x h_dim
-            logits = torch.matmul(h_, q_.unsqueeze(1).transpose(2,3)) # b x h_out x v x q
-            logits = logits + self.h_bias
+            logits = torch.einsum('hk,bvk,bqk->bhvq', (self.h_mat, v_, q_)) + self.h_bias
             return logits # b x h_out x v x q
 
         # batch outer product, linear projection
@@ -68,10 +65,9 @@ class BCNet(nn.Module):
             return logits.transpose(2,3).transpose(1,2) # b x h_out x v x q
 
     def forward_with_weights(self, v, q, w):
-        v_ = self.v_net(v).transpose(1,2).unsqueeze(2) # b x d x 1 x v
-        q_ = self.q_net(q).transpose(1,2).unsqueeze(3) # b x d x q x 1
-        logits = torch.matmul(torch.matmul(v_, w.unsqueeze(1)), q_) # b x d x 1 x 1
-        logits = logits.squeeze(3).squeeze(2)
+        v_ = self.v_net(v) # b x v x d
+        q_ = self.q_net(q) # b x q x d
+        logits = torch.einsum('bvk,bvq,bqk->bk', (v_, w, q_))
         if 1 < self.k:
             logits = logits.unsqueeze(1) # b x 1 x d
             logits = self.p_net(logits).squeeze(1) * self.k # sum-pooling
