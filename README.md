@@ -93,10 +93,11 @@ Please check [troubleshooting wiki](https://github.com/jnhwkim/ban-vqa/wiki/Trou
 If you use this code as part of any published research, we'd really appreciate it if you could cite the following paper:
 
 ```
-@article{Kim2018,
+@inproceedings{Kim2018,
 author = {Kim, Jin-Hwa and Jun, Jaehyun and Zhang, Byoung-Tak},
-journal = {arXiv preprint arXiv:1805.07932},
+booktitle = {Advances in Neural Information Processing Systems 31},
 title = {{Bilinear Attention Networks}},
+pages = {1571--1581},
 year = {2018}
 }
 ```
