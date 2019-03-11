@@ -8,7 +8,6 @@ import time
 import torch
 import torch.nn as nn
 import utils
-from torch.autograd import Variable
 from train import instance_bce_with_logits, compute_score_with_logits
 
 
@@ -58,13 +57,12 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
         else:
             logger.write('lr: %.4f' % optim.param_groups[0]['lr'])
 
-        for i, batch in enumerate(train_loader):
-            v, b, p, e, n, a, idx, types = batch
-            v = Variable(v).cuda()
-            b = Variable(b).cuda()
-            p = Variable(p).cuda()
-            e = Variable(e).cuda()
-            a = Variable(a).cuda()
+        for i, (v, b, p, e, n, a, idx, types) in enumerate(train_loader):
+            v = v.cuda()
+            b = b.cuda()
+            p = p.cuda()
+            e = e.cuda()
+            a = a.cuda()
 
             _, logits = model(v, b, p, e, a)
             n_obj = logits.size(2)
@@ -73,18 +71,18 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
             merged_logit = torch.cat(tuple(logits[j, :, :n[j][0]] for j in range(n.size(0))), -1).permute(1, 0)
             merged_a = torch.cat(tuple(a[j, :n[j][0], :n_obj] for j in range(n.size(0))), 0)
 
-            loss = instance_bce_with_logits(merged_logit, merged_a, False) / v.size(0)
-            N += n.sum()
+            loss = instance_bce_with_logits(merged_logit, merged_a, 'sum') / v.size(0)
+            N += n.sum().float()
 
             batch_score = compute_score_with_logits(merged_logit, merged_a.data).sum()
 
             loss.backward()
-            total_norm += nn.utils.clip_grad_norm(model.parameters(), grad_clip)
+            total_norm += nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
             count_norm += 1
             optim.step()
             optim.zero_grad()
-            total_loss += loss.data[0] * v.size(0)
-            train_score += batch_score
+            total_loss += loss.item() * v.size(0)
+            train_score += batch_score.item()
 
         total_loss /= N
         train_score = 100 * train_score / N
@@ -113,18 +111,18 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
                 best_eval_score = eval_score
 
 
+@torch.no_grad()
 def evaluate(model, dataloader):
     upper_bound = 0
     entropy = None
     score = [0] * 3
     N = 0
-    for batch in iter(dataloader):
-        v, b, p, e, n, a, idx, types = batch
-        v = Variable(v, volatile=True).cuda()
-        b = Variable(b, volatile=True).cuda()
-        p = Variable(p, volatile=True).cuda()
-        e = Variable(e, volatile=True).cuda()
-        a = Variable(a, volatile=True).cuda()
+    for i, (v, b, p, e, n, a, idx, types) in enumerate(dataloader):
+        v = v.cuda()
+        b = b.cuda()
+        p = p.cuda()
+        e = e.cuda()
+        a = a.cuda()
         _, logits = model(v, b, p, e, None)
         n_obj = logits.size(2)
         logits.squeeze_()
@@ -135,8 +133,8 @@ def evaluate(model, dataloader):
         recall = compute_recall_with_logits(merged_logits, merged_a.data)
         for r_idx, r in enumerate(recall):
             score[r_idx] += r
-        N += n.sum()
-        upper_bound += merged_a.max(-1, False)[0].sum()
+        N += n.sum().float()
+        upper_bound += merged_a.max(-1, False)[0].sum().item()
 
     for i in range(3):
         score[i] = score[i] / N
