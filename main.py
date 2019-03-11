@@ -39,7 +39,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     torch.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
     torch.backends.cudnn.benchmark = True
 
     if args.task == 'vqa':
