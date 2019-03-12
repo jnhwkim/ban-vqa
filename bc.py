@@ -33,7 +33,7 @@ class BCNet(nn.Module):
         if None == h_out:
             pass
         elif h_out <= self.c:
-            self.h_mat = nn.Parameter(torch.Tensor(h_out, h_dim * self.k).normal_())
+            self.h_mat = nn.Parameter(torch.Tensor(1, h_out, 1, h_dim * self.k).normal_())
             self.h_bias = nn.Parameter(torch.Tensor(1, h_out, 1, 1).normal_())
         else:
             self.h_net = weight_norm(nn.Linear(h_dim * self.k, h_out), dim=None)
@@ -49,7 +49,7 @@ class BCNet(nn.Module):
         elif self.h_out <= self.c:
             v_ = self.dropout(self.v_net(v))
             q_ = self.q_net(q)
-            logits = torch.einsum('hk,bvk,bqk->bhvq', (self.h_mat, v_, q_)) + self.h_bias
+            logits = torch.einsum('xhyk,bvk,bqk->bhvq', (self.h_mat, v_, q_)) + self.h_bias
             return logits # b x h_out x v x q
 
         # batch outer product, linear projection
