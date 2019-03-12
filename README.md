@@ -10,6 +10,11 @@ This repository is based on and inspired by @hengyuan-hu's [work](https://github
 
 ![Overview of bilinear attention networks](misc/ban_overview.png)
 
+### Updates
+
+* Bilinear attention networks using `torch.einsum`, backward-compatible. (12 Mar 2019)
+* Now compatible with PyTorch v1.0.1. (12 Mar 2019)
+
 ### Prerequisites
 
 You may need a machine with 4 GPUs, 64GB memory, and PyTorch v1.0.1 for Python 3.
