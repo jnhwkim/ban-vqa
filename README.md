@@ -12,8 +12,8 @@ This repository is based on and inspired by @hengyuan-hu's [work](https://github
 
 ### Updates
 
-* Bilinear attention networks using `torch.einsum`, backward-compatible. (12 Mar 2019)
-* Now compatible with PyTorch v1.0.1. (12 Mar 2019)
+* Bilinear attention networks using `torch.einsum`, backward-compatible. ([12 Mar 2019](https://github.com/jnhwkim/ban-vqa/issues/15#issuecomment-471864594))
+* Now compatible with PyTorch v1.0.1. ([12 Mar 2019](https://github.com/jnhwkim/ban-vqa/pull/22))
 
 ### Prerequisites
 
