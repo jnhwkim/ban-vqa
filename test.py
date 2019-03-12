@@ -8,7 +8,6 @@ import progressbar
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from torch.autograd import Variable
 import numpy as np
 
 from dataset import Dictionary, VQAFeatureDataset
@@ -27,8 +26,8 @@ def parse_args():
     parser.add_argument('--input', type=str, default='saved_models/ban')
     parser.add_argument('--output', type=str, default='results')
     parser.add_argument('--batch_size', type=int, default=256)
-    parser.add_argument('--debug', type=bool, default=False)
-    parser.add_argument('--logits', type=bool, default=False)
+    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--logits', action='store_true')
     parser.add_argument('--index', type=int, default=0)
     parser.add_argument('--epoch', type=int, default=12)
     args = parser.parse_args()
@@ -45,9 +44,10 @@ def get_question(q, dataloader):
 
 def get_answer(p, dataloader):
     _m, idx = p.max(0)
-    return dataloader.dataset.label2ans[idx[0]]
+    return dataloader.dataset.label2ans[idx.item()]
 
 
+@torch.no_grad()
 def get_logits(model, dataloader):
     N = len(dataloader.dataset)
     M = dataloader.dataset.num_ans_candidates
@@ -58,9 +58,9 @@ def get_logits(model, dataloader):
     for v, b, q, i in iter(dataloader):
         bar.update(idx)
         batch_size = v.size(0)
-        v = Variable(v, volatile=True).cuda()
-        b = Variable(b, volatile=True).cuda()
-        q = Variable(q, volatile=True).cuda()
+        v = v.cuda()
+        b = b.cuda()
+        q = q.cuda()
         logits, att = model(v, b, q, None)
         pred[idx:idx+batch_size,:].copy_(logits.data)
         qIds[idx:idx+batch_size].copy_(i)
@@ -77,7 +77,7 @@ def make_json(logits, qIds, dataloader):
     results = []
     for i in range(logits.size(0)):
         result = {}
-        result['question_id'] = qIds[i]
+        result['question_id'] = qIds[i].item()
         result['answer'] = get_answer(logits[i], dataloader)
         results.append(result)
     return results

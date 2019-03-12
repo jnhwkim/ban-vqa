@@ -12,9 +12,9 @@ This repository is based on and inspired by @hengyuan-hu's [work](https://github
 
 ### Prerequisites
 
-You may need a machine with 4 GPUs, 64GB memory, and PyTorch v0.3.1 for Python 3.
+You may need a machine with 4 GPUs, 64GB memory, and PyTorch v1.0.1 for Python 3.
 
-1. Install [PyTorch](http://pytorch.org/) with CUDA and Python 3.5.
+1. Install [PyTorch](http://pytorch.org/) with CUDA and Python 3.6.
 2. Install [h5py](http://docs.h5py.org/en/latest/build.html).
 
 ## VQA

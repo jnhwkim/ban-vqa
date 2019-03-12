@@ -9,8 +9,6 @@ MIT License
 """
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
 
 
 class Counter(nn.Module):
@@ -38,7 +36,7 @@ class Counter(nn.Module):
         boxes, attention = self.filter_most_important(self.objects, boxes, attention)
         # normalise the attention weights to be in [0, 1]
         if not self.already_sigmoided:
-            attention = F.sigmoid(attention)
+            attention = torch.sigmoid(attention)
 
         relevancy = self.outer_product(attention)
         distance = 1 - self.iou(boxes, boxes)
@@ -92,7 +90,7 @@ class Counter(nn.Module):
         target_l.scatter_(dim=1, index=i.clamp(max=self.objects), value=1)
         target_r.scatter_(dim=1, index=(i + 1).clamp(max=self.objects), value=1)
         # interpolate between these with the fractional part of the score
-        return (1 - f) * Variable(target_l) + f * Variable(target_r)
+        return (1 - f) * target_l + f * target_r
 
     def filter_most_important(self, n, boxes, attention):
         """ Only keep top-n object proposals, scored by attention weight """
@@ -166,7 +164,7 @@ class PiecewiseLin(nn.Module):
 
         # figure out which part of the function the input lies on
         y = self.n * x.unsqueeze(0)
-        idx = Variable(y.long().data)
+        idx = y.long().data
         f = y.frac()
 
         # contribution of the linear parts left of the input

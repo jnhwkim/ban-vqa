@@ -7,7 +7,6 @@ This code is written by Jin-Hwa Kim.
 """
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.nn.utils.weight_norm import weight_norm
 import utils

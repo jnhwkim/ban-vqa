@@ -8,15 +8,14 @@ import itertools
 import torch
 import torch.nn as nn
 import utils
-from torch.autograd import Variable
 import torch.optim.lr_scheduler as lr_scheduler
 
 
-def instance_bce_with_logits(logits, labels, size_average=True):
+def instance_bce_with_logits(logits, labels, reduction='mean'):
     assert logits.dim() == 2
 
-    loss = nn.functional.binary_cross_entropy_with_logits(logits, labels, size_average=size_average)
-    if size_average:
+    loss = nn.functional.binary_cross_entropy_with_logits(logits, labels, reduction=reduction)
+    if reduction == 'mean':
         loss *= labels.size(1)
     return loss
 
@@ -65,22 +64,22 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
             logger.write('lr: %.4f' % optim.param_groups[0]['lr'])
 
         for i, (v, b, q, a) in enumerate(train_loader):
-            v = Variable(v).cuda()
-            b = Variable(b).cuda()
-            q = Variable(q).cuda()
-            a = Variable(a).cuda()
+            v = v.cuda()
+            b = b.cuda()
+            q = q.cuda()
+            a = a.cuda()
 
             pred, att = model(v, b, q, a)
             loss = instance_bce_with_logits(pred, a)
             loss.backward()
-            total_norm += nn.utils.clip_grad_norm(model.parameters(), grad_clip)
+            total_norm += nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
             count_norm += 1
             optim.step()
             optim.zero_grad()
 
             batch_score = compute_score_with_logits(pred, a.data).sum()
-            total_loss += loss.data[0] * v.size(0)
-            train_score += batch_score
+            total_loss += loss.item() * v.size(0)
+            train_score += batch_score.item()
 
         total_loss /= N
         train_score = 100 * train_score / N
@@ -107,6 +106,7 @@ def train(model, train_loader, eval_loader, num_epochs, output, opt=None, s_epoc
                 best_eval_score = eval_score
 
 
+@torch.no_grad()
 def evaluate(model, dataloader):
     score = 0
     upper_bound = 0
@@ -114,14 +114,14 @@ def evaluate(model, dataloader):
     entropy = None
     if hasattr(model.module, 'glimpse'):
         entropy = torch.Tensor(model.module.glimpse).zero_().cuda()
-    for v, b, q, a in iter(dataloader):
-        v = Variable(v).cuda()
-        b = Variable(b).cuda()
-        q = Variable(q, volatile=True).cuda()
+    for i, (v, b, q, a) in enumerate(dataloader):
+        v = v.cuda()
+        b = b.cuda()
+        q = q.cuda()
         pred, att = model(v, b, q, None)
         batch_score = compute_score_with_logits(pred, a.cuda()).sum()
-        score += batch_score
-        upper_bound += (a.max(1)[0]).sum()
+        score += batch_score.item()
+        upper_bound += (a.max(1)[0]).sum().item()
         num_data += pred.size(0)
         if att is not None and 0 < model.module.glimpse:
             entropy += calc_entropy(att.data)[:model.module.glimpse]
