@@ -45,9 +45,7 @@ class BCNet(nn.Module):
             logits = torch.einsum('bvk,bqk->bvqk', (v_, q_))
             return logits
 
-        # broadcast Hadamard product, matrix-matrix production
-        # fast computation but memory inefficient
-        # epoch 1, time: 157.84
+        # low-rank bilinear pooling using einsum
         elif self.h_out <= self.c:
             v_ = self.dropout(self.v_net(v))
             q_ = self.q_net(q)
@@ -56,7 +54,6 @@ class BCNet(nn.Module):
 
         # batch outer product, linear projection
         # memory efficient but slow computation
-        # epoch 1, time: 304.87
         else: 
             v_ = self.dropout(self.v_net(v)).transpose(1,2).unsqueeze(3)
             q_ = self.q_net(q).transpose(1,2).unsqueeze(2)
