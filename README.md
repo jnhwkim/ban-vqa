@@ -22,6 +22,8 @@ You may need a machine with 4 GPUs, 64GB memory, and PyTorch v1.0.1 for Python 3
 1. Install [PyTorch](http://pytorch.org/) with CUDA and Python 3.6.
 2. Install [h5py](http://docs.h5py.org/en/latest/build.html).
 
+*WARNING: do not use PyTorch v1.0.0 due to [a bug](https://github.com/pytorch/pytorch/issues/15602) which induces underperformance.*
+
 ## VQA
 ### Preprocessing
 
