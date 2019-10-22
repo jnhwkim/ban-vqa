@@ -45,7 +45,7 @@ def get_question(q, dataloader):
 
 def get_answer(p, dataloader):
     _m, idx = p.max(0)
-    return dataloader.dataset.label2ans[idx[0]]
+    return dataloader.dataset.label2ans[idx.item()]
 
 
 def get_logits(model, dataloader):

@@ -86,6 +86,25 @@ def inference(questions, dataloader, batch_size=32):
     elapsed_time = time.time() - start_time
     return answers, elapsed_time
 
+def inference_with_feat(questions, dataloader, feature, batch_size=32):
+    start_time = time.time()
+    dataloader.entries = _load_dataset(questions, dataloader.img_id2idx, dataloader.label2ans)
+    dataloader.tokenize()
+    dataloader.tensorize(question_only=True)
+    eval_loader = DataLoader(dataloader, batch_size, shuffle=False, num_workers=1, collate_fn=utils.trim_collate)
+
+    q = torch.stack([entry['q_token'] for entry in dataloader.entries], dim=0)
+    v = torch.stack([feature['features']] * q.size(0), dim=0)
+    b = torch.stack([feature['boxes']] * q.size(0), dim=0)
+
+    v = Variable(v).cuda()
+    b = Variable(b).cuda()
+    q = Variable(q, volatile=True).cuda()
+    pred, att = model(v, b, q, None)
+    answers = postprocess(pred.data, eval_loader)
+    elapsed_time = time.time() - start_time
+    return answers, elapsed_time
+
 def get_style(request):
     agent = request.headers.get('User-Agent')
     phones = ["iphone", "android", "blackberry"]
@@ -171,6 +190,50 @@ def query():
             imageid=imageid, 
             impath=impath,
             questions=sample,
+            is_query=True,
+            style=get_style(request))
+
+@app.route('/a/<filename>')
+def a_index(filename=None):
+    if filename is None:
+        return abort(404)
+    impath = url_for('static', filename='samples/%s' % (filename))
+    session.clear()
+
+    return render_template('index.html',
+        imageid=1,
+        filename=filename,
+        impath=impath,
+        questions=session,
+        style=get_style(request))
+
+@app.route('/a/query', methods=['POST'])
+def a_query():
+    if request.form['question'] is None:
+        return abort(404)
+    else:
+        # retrieve single session information
+        filename = request.form['filename']
+        impath = url_for('static', filename='samples/%s' % (filename))
+        feat = torch.load('demo/static/samples/{}.pth'.format(filename.split('.')[0]))
+
+        question = request.form['question']
+        q = {'question': question, 
+             'image_id': 1,
+             'question_id': 0}
+        session.append(q)
+
+        answers, elapsed_time = inference_with_feat(session, eval_dset, feat)
+        log('agent=%s, q=%s (%.3f)' % (request.headers.get('User-Agent'), question, elapsed_time))
+
+        for q, a in zip(session, answers):
+            q['answer'] = a
+
+        return render_template('index.html', 
+            imageid=1,
+            filename=filename, 
+            impath=impath,
+            questions=session,
             is_query=True,
             style=get_style(request))
 

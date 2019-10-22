@@ -1,7 +1,7 @@
 <!doctype html>
 <header>
     <title>BAN-VQA Demo</title>
-    <link rel="stylesheet" type="text/css" href="static/{{ style }}.css">
+    <link rel="stylesheet" type="text/css" href="/static/{{ style }}.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>
         {% if is_query %}
@@ -18,9 +18,11 @@
             $('.actbox input.refresh').click(function(){
                 window.location.href = '/';
             });
+            {% if not filename %}
             setInterval(function() {
                window.location.href = '/';
             }, {{ '300000' if is_query else '120000' }});  // auto-refresh: 2 min, init: 5 min
+            {% endif %}
         });
     </script>
 </header>
@@ -28,10 +30,10 @@
 <div class="demo">
 {% if imageid %}
     <div class="header">
-        <img src="static/vqa_logo.png" style="height: 50px"/> <span class="text">2.0 test-{{ imageid }}</span><span class="title"> <img src="static/logo.png"/></span>
+        <img src="/static/vqa_logo.png" style="height: 50px"/> <span class="text">2.0 test-{{ imageid }}</span><span class="title"> <img src="/static/logo.png"/></span>
     </div>
     <div class="imgbox">
-        <img src="{{ impath }}"/>
+        <img src="{{ impath }}" max-width="1200"/>
     </div>
     <div class="chatbox"> 
     <ul>
@@ -42,10 +44,11 @@
     </ul>
     </div>
     <div class="actbox">
-        <form action="/query" method="post">
+        <form action="{% if filename %}/a/query{% else %}/query{% endif %}" method="post">
             <div class="wrapper"><input type="text" name="question" placeholder="Your question?" autofocus/></div>
             <input type="button" value="Random" class="refresh"/>
             <input type="submit" value="Query"/>
+            <input type="hidden" name="filename" value="{{ filename }}"/>
         </form>
     </div>
 {% else %}
