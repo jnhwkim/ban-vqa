@@ -74,7 +74,7 @@ Without the Visual Genome augmentation, we get **69.50** (average of 8 models wi
 
 ## Flickr30k Entities
 ### Preprocessing
-You have to manually download [Annotation and Sentence](http://web.engr.illinois.edu/~bplumme2/Flickr30kEntities/) files to `data/flickr30k/Flickr30kEntities.tar.gz`. Then run the provided script `tools/download_flickr.sh` and `tools/process_flickr.sh` from the root of this repository, similarly to the case of VQA. Note that the image features of Flickr30k were generated using [bottom-up-attention pretrained model](https://github.com/peteanderson80/bottom-up-attention.git).
+You have to manually download [Annotation and Sentence](https://github.com/BryanPlummer/flickr30k_entities/blob/master/annotations.zip) files to `data/flickr30k/Flickr30kEntities.tar.gz`. Then run the provided script `tools/download_flickr.sh` and `tools/process_flickr.sh` from the root of this repository, similarly to the case of VQA. Note that the image features of Flickr30k were generated using [bottom-up-attention pretrained model](https://github.com/peteanderson80/bottom-up-attention.git).
 
 ### Training
 
