@@ -165,7 +165,7 @@ def _load_visualgenome(dataroot, name, img_id2val, label2ans, adaptive=True):
         vgv = {}
         for _v in _vgv: 
             if None != _v['coco_id']:
-                vgv[_v['id']] = _v['coco_id']
+                vgv[_v['image_id']] = _v['coco_id']
         counts = [0, 0, 0, 0] # used image, used question, total question, out-of-split
         for vg in vgq:
             coco_id = vgv.get(vg['id'], None)
