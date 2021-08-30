@@ -25,9 +25,12 @@ rm data/flickr30k/flickr30k_images.tar.gz
 
 # Flickr30k Image Features
 # Image feature Generated using https://github.com/peteanderson80/bottom-up-attention.git
-wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://drive.google.com/uc?export=download&id=11OD_qq7ITBarJwWZfi0bWIRw3HPEaHwE' -O tmp.html
-wget --load-cookies /tmp/cookies.txt "https://drive.google.com/uc?export=download&confirm=$(cat tmp.html | sed -En 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=11OD_qq7ITBarJwWZfi0bWIRw3HPEaHwE" -O data/flickr30k/flickr30k_features.zip
-rm -rf /tmp/cookies.txt tmp.html
+# Please download via https://drive.google.com/file/d/1BmcxeY1kXzMZv54d4wMtl7HGc8Cs9zgO/view?usp=sharing
+# The below direct download is blocked.
+#
+# wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://drive.google.com/uc?export=download&id=11OD_qq7ITBarJwWZfi0bWIRw3HPEaHwE' -O tmp.html
+# wget --load-cookies /tmp/cookies.txt "https://drive.google.com/uc?export=download&confirm=$(cat tmp.html | sed -En 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=11OD_qq7ITBarJwWZfi0bWIRw3HPEaHwE" -O data/flickr30k/flickr30k_features.zip
+# rm -rf /tmp/cookies.txt tmp.html
 
 unzip data/flickr30k/flickr30k_features.zip -d data/flickr30k
 rm data/flickr30k/flickr30k_features.zip
