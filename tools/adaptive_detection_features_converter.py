@@ -78,9 +78,9 @@ def extract(split, infiles, task='vqa'):
             'val': 'data/flickr30k/flickr30k_images',
             'test': 'data/flickr30k/flickr30k_images'}
         known_num_boxes = {
-            'train': 904930,
-            'val': 29906,
-            'test': 30034,}
+            'train': 903500,
+            'val': 30722,
+            'test': 30648,}
 
     feature_length = 2048
     min_fixed_boxes = 10
