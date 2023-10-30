@@ -1,5 +1,7 @@
 # Bilinear Attention Networks
 
+⚠️ **Regrettably, I cannot perform maintenance due to the loss of the materials. I'm archiving this repository for reference**
+
 This repository is the implementation of [Bilinear Attention Networks](http://arxiv.org/abs/1805.07932) for the visual question answering and Flickr30k Entities tasks. 
 
 For the visual question answering task, our single model achieved **70.35** and an ensemble of 15 models achieved **71.84** (Test-standard, VQA 2.0).
